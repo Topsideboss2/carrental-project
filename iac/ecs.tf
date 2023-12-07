@@ -62,6 +62,27 @@ resource "aws_ecs_task_definition" "ecs_task_definition" {
       }
     },
     {
+      name      = "${var.project_name}-${var.environment}-redis-container"
+      image     = "public.ecr.aws/ubuntu/redis:latest"
+      essential = true
+
+      portMappings = [
+        {
+          containerPort = 6379
+          hostPort      = 6379
+        }
+      ]
+
+      logConfiguration = {
+        logDriver = "awslogs",
+        options = {
+          "awslogs-group"         = "${aws_cloudwatch_log_group.log_group.name}",
+          "awslogs-region"        = "${var.region}",
+          "awslogs-stream-prefix" = "ecs"
+        }
+      }
+    },
+    {
       name      = "${var.project_name}-${var.environment}-web-container"
       image     = "${local.secrets.ecr_registry}/${var.image_name1}:${var.image_tag}"
       essential = true
