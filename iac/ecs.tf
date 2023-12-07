@@ -34,7 +34,7 @@ resource "aws_ecs_task_definition" "ecs_task_definition" {
   # create container definition
   container_definitions = jsonencode([
     {
-      name      = "${var.project_name}-${var.environment}-container"
+      name      = "${var.project_name}-${var.environment}-app-container"
       image     = "${local.secrets.ecr_registry}/${var.image_name2}:${var.image_tag}"
       essential = true
 
@@ -62,7 +62,7 @@ resource "aws_ecs_task_definition" "ecs_task_definition" {
       }
     },
     {
-      name      = "${var.project_name}-${var.environment}-container"
+      name      = "${var.project_name}-${var.environment}-web-container"
       image     = "${local.secrets.ecr_registry}/${var.image_name1}:${var.image_tag}"
       essential = true
 
@@ -83,7 +83,7 @@ resource "aws_ecs_task_definition" "ecs_task_definition" {
       }
     },
     {
-      name      = "${var.project_name}-${var.environment}-container"
+      name      = "${var.project_name}-${var.environment}-redis-container"
       image     = "${local.secrets.ecr_registry}/${var.image_name3}:${var.image_tag}"
       essential = true
 
