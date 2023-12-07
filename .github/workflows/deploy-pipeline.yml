@@ -273,7 +273,7 @@ jobs:
           docker compose build \
           redis ./carrental/.
           docker compose build \
-          web ./carrental./
+          web ./carrental/.
           docker compose build \
           --build-arg RDS_ENDPOINT=${{ env.RDS_ENDPOINT }} \
           --build-arg REDIS_HOST=${{ secrets.RDS_ENDPOINT }} \
