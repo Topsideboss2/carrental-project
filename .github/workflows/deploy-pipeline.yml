@@ -271,9 +271,9 @@ jobs:
           RDS_ENDPOINT: ${{ needs.deploy_aws_infrastructure.outputs.rds_endpoint }}
         run: |
           docker compose build \
-          ${{ env.IMAGE_NAME3 }}:${{ env.IMAGE_TAG }} ./carrental
+          redis ./carrental
           docker compose build \
-          ${{ env.IMAGE_NAME1 }}:${{ env.IMAGE_TAG }} ./carrental
+          web ./carrental
           docker compose build \
           --build-arg RDS_ENDPOINT=${{ env.RDS_ENDPOINT }} \
           --build-arg REDIS_HOST=${{ secrets.RDS_ENDPOINT }} \
@@ -294,7 +294,7 @@ jobs:
           --build-arg CLOUDINARY_NAME=${{ secrets.RDS_ENDPOINT }} \
           --build-arg CLOUDINARY_API_KEY=${{ secrets.RDS_ENDPOINT }} \
           --build-arg CLOUDINARY_API_SECRET=${{ secrets.RDS_ENDPOINT }} \
-          ${{ env.IMAGE_NAME2 }}:${{ secrets.IMAGE_TAG }} ./carrental
+          api ./carrental
 
       - name: Retag Docker images
         env:
@@ -302,9 +302,9 @@ jobs:
             IMAGE_NAME2: ${{ needs.deploy_aws_infrastructure.outputs.image_name2 }}
             IMAGE_NAME3: ${{ needs.deploy_aws_infrastructure.outputs.image_name3 }}
         run: |
-          docker tag ${{ env.IMAGE_NAME1 }} ${{ secrets.ECR_REGISTRY }}/${{ env.IMAGE_NAME1 }}
-          docker tag ${{ env.IMAGE_NAME2 }} ${{ secrets.ECR_REGISTRY }}/${{ env.IMAGE_NAME2 }}
-          docker tag ${{ env.IMAGE_NAME3 }} ${{ secrets.ECR_REGISTRY }}/${{ env.IMAGE_NAME3 }}
+          docker tag carrental-web ${{ secrets.ECR_REGISTRY }}/${{ env.IMAGE_NAME1 }}
+          docker tag carrental-api ${{ secrets.ECR_REGISTRY }}/${{ env.IMAGE_NAME2 }}
+          docker tag carrental-redis ${{ secrets.ECR_REGISTRY }}/${{ env.IMAGE_NAME3 }}
 
       - name: Push Docker Images to Amazon ECR
         env:
