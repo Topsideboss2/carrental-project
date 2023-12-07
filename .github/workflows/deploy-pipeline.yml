@@ -273,25 +273,25 @@ jobs:
           docker compose build redis
           docker compose build web
           docker compose build \
-          --build-arg RDS_ENDPOINT=${{ env.RDS_ENDPOINT }} \
-          --build-arg REDIS_HOST=${{ secrets.RDS_ENDPOINT }} \
-          --build-arg REDIS_PORT=${{ secrets.RDS_ENDPOINT }} \
-          --build-arg REDIS_TTL=${{ secrets.RDS_ENDPOINT }} \
-          --build-arg REDIS_PASSWORD=${{ secrets.RDS_ENDPOINT }} \
-          --build-arg JWT_SECRET=${{ secrets.RDS_ENDPOINT }} \
-          --build-arg REFRESH_TOKEN_SECRET=${{ secrets.RDS_ENDPOINT }} \
-          --build-arg REFRESH_TOKEN_EXPIRATION=${{ secrets.RDS_ENDPOINT }} \
-          --build-arg FUTUREFAST_NOTIFICATION_URL=${{ secrets.RDS_ENDPOINT }} \
-          --build-arg FUTUREFAST_NOTIFICATION_APP_CODE=${{ secrets.RDS_ENDPOINT }} \
-          --build-arg MPESA_SHORTCODE=${{ secrets.RDS_ENDPOINT }} \
-          --build-arg MPESA_PASSKEY=${{ secrets.RDS_ENDPOINT }} \
-          --build-arg MPESA_CONSUMER_KEY=${{ secrets.RDS_ENDPOINT }} \
-          --build-arg MPESA_CONSUMER_SECRET=${{ secrets.RDS_ENDPOINT }} \
-          --build-arg MPESA_CALLBACK_URL=${{ secrets.RDS_ENDPOINT }} \
-          --build-arg SAFARICOM_URL=${{ secrets.RDS_ENDPOINT }} \
-          --build-arg CLOUDINARY_NAME=${{ secrets.RDS_ENDPOINT }} \
-          --build-arg CLOUDINARY_API_KEY=${{ secrets.RDS_ENDPOINT }} \
-          --build-arg CLOUDINARY_API_SECRET=${{ secrets.RDS_ENDPOINT }} \
+          --build-arg DATABASE_URL=${{ env.RDS_ENDPOINT }} \
+          --build-arg REDIS_HOST=${{ secrets.REDIS_HOST }} \
+          --build-arg REDIS_PORT=${{ secrets.REDIS_PORT }} \
+          --build-arg REDIS_TTL=${{ secrets.REDIS_TTL }} \
+          --build-arg REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }} \
+          --build-arg JWT_SECRET=${{ secrets.JWT_SECRET }} \
+          --build-arg REFRESH_TOKEN_SECRET=${{ secrets.REFRESH_TOKEN_SECRET }} \
+          --build-arg REFRESH_TOKEN_EXPIRATION=${{ secrets.REFRESH_TOKEN_EXPIRATION }} \
+          --build-arg FUTUREFAST_NOTIFICATION_URL=${{ secrets.FUTUREFAST_NOTIFICATION_URL }} \
+          --build-arg FUTUREFAST_NOTIFICATION_APP_CODE=${{ secrets.FUTUREFAST_NOTIFICATION_APP_CODE }} \
+          --build-arg MPESA_SHORTCODE=${{ secrets.MPESA_SHORTCODE }} \
+          --build-arg MPESA_PASSKEY=${{ secrets.MPESA_PASSKEY }} \
+          --build-arg MPESA_CONSUMER_KEY=${{ secrets.MPESA_CONSUMER_KEY }} \
+          --build-arg MPESA_CONSUMER_SECRET=${{ secrets.MPESA_CONSUMER_SECRET }} \
+          --build-arg MPESA_CALLBACK_URL=${{ secrets.MPESA_CALLBACK_URL }} \
+          --build-arg SAFARICOM_URL=${{ secrets.SAFARICOM_URL }} \
+          --build-arg CLOUDINARY_NAME=${{ secrets.CLOUDINARY_NAME }} \
+          --build-arg CLOUDINARY_API_KEY=${{ secrets.CLOUDINARY_API_KEY }} \
+          --build-arg CLOUDINARY_API_SECRET=${{ secrets.CLOUDINARY_API_SECRET }} \
           api 
 
       - name: Show docker image names
@@ -317,3 +317,46 @@ jobs:
             docker push ${{ secrets.ECR_REGISTRY }}/${{ env.IMAGE_NAME1 }}
             docker push ${{ secrets.ECR_REGISTRY }}/${{ env.IMAGE_NAME2 }}
 #            docker push ${{ secrets.ECR_REGISTRY }}/${{ env.IMAGE_NAME3 }}
+
+
+  # Create environment file and export to S3 
+  export_env_variables:
+    name: Create environment file and export to S3 
+    needs:
+      - configure_aws_credentials
+      - deploy_aws_infrastructure
+      - start_runner
+      - build_and_push_image
+    if: needs.deploy_aws_infrastructure.outputs.terraform_action != 'destroy'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Export environment variable values to file
+        env:
+            ENVIRONMENT_FILE_NAME: ${{ needs.deploy_aws_infrastructure.outputs.environment_file_name }}
+            RDS_ENDPOINT: ${{ needs.deploy_aws_infrastructure.outputs.rds_endpoint }}
+        run: |
+          echo "RDS_ENDPOINT=${{ env.RDS_ENDPOINT }}" > ${{ env.ENVIRONMENT_FILE_NAME }}
+          echo "REDIS_HOST=${{ secrets.REDIS_HOST }}" >> ${{ env.ENVIRONMENT_FILE_NAME }}
+          echo "REDIS_PORT=${{ secrets.REDIS_PORT }}" >> ${{ env.ENVIRONMENT_FILE_NAME }}
+          echo "REDIS_TTL=${{ secrets.REDIS_TTL }}" >> ${{ env.ENVIRONMENT_FILE_NAME }}
+          echo "REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}" >> ${{ env.ENVIRONMENT_FILE_NAME }}
+          echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> ${{ env.ENVIRONMENT_FILE_NAME }}
+          echo "REFRESH_TOKEN_SECRET=${{ secrets.REFRESH_TOKEN_SECRET }}" >> ${{ env.ENVIRONMENT_FILE_NAME }}
+          echo "REFRESH_TOKEN_EXPIRATION=${{ secrets.REFRESH_TOKEN_EXPIRATION }}" >> ${{ env.ENVIRONMENT_FILE_NAME }}
+          echo "FUTUREFAST_NOTIFICATION_URL=${{ secrets.FUTUREFAST_NOTIFICATION_URL }}" >> ${{ env.ENVIRONMENT_FILE_NAME }}
+          echo "FUTUREFAST_NOTIFICATION_APP_CODE=${{ secrets.FUTUREFAST_NOTIFICATION_APP_CODE }}" >> ${{ env.ENVIRONMENT_FILE_NAME }}
+          echo "MPESA_SHORTCODE=${{ secrets.MPESA_SHORTCODE }}" >> ${{ env.ENVIRONMENT_FILE_NAME }}
+          echo "MPESA_PASSKEY=${{ secrets.MPESA_PASSKEY }}" >> ${{ env.ENVIRONMENT_FILE_NAME }}
+          echo "MPESA_CONSUMER_KEY=${{ secrets.MPESA_CONSUMER_KEY }}" >> ${{ env.ENVIRONMENT_FILE_NAME }}
+          echo "MPESA_CONSUMER_SECRET=${{ secrets.MPESA_CONSUMER_SECRET }}" >> ${{ env.ENVIRONMENT_FILE_NAME }}
+          echo "MPESA_CALLBACK_URL=${{ secrets.MPESA_CALLBACK_URL }}" >> ${{ env.ENVIRONMENT_FILE_NAME }}
+          echo "SAFARICOM_URL=${{ secrets.SAFARICOM_URL }}" >> ${{ env.ENVIRONMENT_FILE_NAME }}
+          echo "CLOUDINARY_NAME=${{ secrets.CLOUDINARY_NAME }}" >> ${{ env.ENVIRONMENT_FILE_NAME }}
+          echo "CLOUDINARY_API_KEY=${{ secrets.CLOUDINARY_API_KEY }}" >> ${{ env.ENVIRONMENT_FILE_NAME }}
+          echo "CLOUDINARY_API_SECRET=${{ secrets.CLOUDINARY_API_SECRET }}" >> ${{ env.ENVIRONMENT_FILE_NAME }}
+
+      - name: Upload environment file to S3
+        env:
+          ENVIRONMENT_FILE_NAME: ${{ needs.deploy_aws_infrastructure.outputs.environment_file_name }}
+          ENV_FILE_BUCKET_NAME: ${{ needs.deploy_aws_infrastructure.outputs.env_file_bucket_name }}
+        run: aws s3 cp ${{ env.ENVIRONMENT_FILE_NAME }} s3://${{ env.ENV_FILE_BUCKET_NAME }}/${{ env.ENVIRONMENT_FILE_NAME }}
