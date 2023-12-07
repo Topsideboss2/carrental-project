@@ -270,7 +270,6 @@ jobs:
           IMAGE_TAG: ${{ needs.deploy_aws_infrastructure.outputs.image_tag }}
           RDS_ENDPOINT: ${{ needs.deploy_aws_infrastructure.outputs.rds_endpoint }}
         run: |
-          docker compose build redis
           docker compose build web
           docker compose build \
           --build-arg DATABASE_URL=${{ env.RDS_ENDPOINT }} \
@@ -302,7 +301,7 @@ jobs:
         env:
             IMAGE_NAME1: ${{ needs.deploy_aws_infrastructure.outputs.image_name1 }}
             IMAGE_NAME2: ${{ needs.deploy_aws_infrastructure.outputs.image_name2 }}
-            IMAGE_NAME3: ${{ needs.deploy_aws_infrastructure.outputs.image_name3 }}
+#            IMAGE_NAME3: ${{ needs.deploy_aws_infrastructure.outputs.image_name3 }}
         run: |
           docker tag carrental-github-actions-terraform-ecs-project-web ${{ secrets.ECR_REGISTRY }}/${{ env.IMAGE_NAME1 }}
           docker tag carrental-github-actions-terraform-ecs-project-api ${{ secrets.ECR_REGISTRY }}/${{ env.IMAGE_NAME2 }}
