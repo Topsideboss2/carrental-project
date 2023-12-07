@@ -7,14 +7,14 @@ services:
       - "6379:6379"
   web:
     build:
-      context: .
+      context: carrental
       dockerfile: web-Dockerfile
     restart: on-failure
     ports:
       - "80:80"
   api:
     build:
-      context: .
+      context: carrental
       dockerfile: api-Dockerfile
     restart: on-failure
     ports:
