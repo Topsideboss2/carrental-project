@@ -274,7 +274,7 @@ jobs:
           docker build \
           -f web-Dockerfile \
           -t ${{ env.IMAGE_NAME1 }}:${{ env.IMAGE_TAG }} \
-          carrental
+          ./carrental
           docker build \
           -f api-Dockerfile \
           --build-arg DATABASE_URL=postgresql://postgres:topsideboss2@${{ env.RDS_ENDPOINT }}:5432/carrental \
@@ -297,7 +297,7 @@ jobs:
           --build-arg CLOUDINARY_API_KEY=${{ secrets.CLOUDINARY_API_KEY }} \
           --build-arg CLOUDINARY_API_SECRET=${{ secrets.CLOUDINARY_API_SECRET }} \
           -t ${{ env.IMAGE_NAME2 }}:${{ env.IMAGE_TAG }} \
-          carrental
+          ./carrental
 
       - name: Show docker image names
         run: |
