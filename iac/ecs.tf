@@ -131,7 +131,7 @@ resource "aws_ecs_service" "ecs_service" {
   # load balancing
   load_balancer {
     target_group_arn = aws_lb_target_group.alb_target_group.arn
-    container_name   = "${var.project_name}-${var.environment}-container"
+    container_name   = "${var.project_name}-${var.environment}-web-container"
     container_port   = 80
   }
 }
