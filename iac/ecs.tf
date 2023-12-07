@@ -34,7 +34,7 @@ resource "aws_ecs_task_definition" "ecs_task_definition" {
   # create container definition
   container_definitions = jsonencode([
     {
-      name      = "${var.project_name}-${var.environment}-app-container"
+      name      = "${var.project_name}-${var.environment}-api-container"
       image     = "${local.secrets.ecr_registry}/${var.image_name2}:${var.image_tag}"
       essential = true
 
@@ -49,27 +49,6 @@ resource "aws_ecs_task_definition" "ecs_task_definition" {
         {
           value = "arn:aws:s3:::${var.project_name}-${var.env_file_bucket_name}/${var.env_file_name}"
           type  = "s3"
-        }
-      ]
-
-      logConfiguration = {
-        logDriver = "awslogs",
-        options = {
-          "awslogs-group"         = "${aws_cloudwatch_log_group.log_group.name}",
-          "awslogs-region"        = "${var.region}",
-          "awslogs-stream-prefix" = "ecs"
-        }
-      }
-    },
-    {
-      name      = "${var.project_name}-${var.environment}-redis-container"
-      image     = "public.ecr.aws/ubuntu/redis:latest"
-      essential = true
-
-      portMappings = [
-        {
-          containerPort = 6379
-          hostPort      = 6379
         }
       ]
 
