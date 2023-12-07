@@ -304,9 +304,9 @@ jobs:
             IMAGE_NAME2: ${{ needs.deploy_aws_infrastructure.outputs.image_name2 }}
             IMAGE_NAME3: ${{ needs.deploy_aws_infrastructure.outputs.image_name3 }}
         run: |
-          docker tag carrental-web ${{ secrets.ECR_REGISTRY }}/${{ env.IMAGE_NAME1 }}
-          docker tag carrental-api ${{ secrets.ECR_REGISTRY }}/${{ env.IMAGE_NAME2 }}
-          docker tag carrental-redis ${{ secrets.ECR_REGISTRY }}/${{ env.IMAGE_NAME3 }}
+          docker tag carrental-github-actions-terraform-ecs-project-web ${{ secrets.ECR_REGISTRY }}/${{ env.IMAGE_NAME1 }}
+          docker tag carrental-github-actions-terraform-ecs-project-api ${{ secrets.ECR_REGISTRY }}/${{ env.IMAGE_NAME2 }}
+#          docker tag carrental-redis ${{ secrets.ECR_REGISTRY }}/${{ env.IMAGE_NAME3 }}
 
       - name: Push Docker Images to Amazon ECR
         env:
@@ -316,4 +316,4 @@ jobs:
         run: |
             docker push ${{ secrets.ECR_REGISTRY }}/${{ env.IMAGE_NAME1 }}
             docker push ${{ secrets.ECR_REGISTRY }}/${{ env.IMAGE_NAME2 }}
-            docker push ${{ secrets.ECR_REGISTRY }}/${{ env.IMAGE_NAME3 }}
+#            docker push ${{ secrets.ECR_REGISTRY }}/${{ env.IMAGE_NAME3 }}
