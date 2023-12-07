@@ -176,31 +176,31 @@ jobs:
           IMAGE_NAME3: ${{ needs.deploy_aws_infrastructure.outputs.image_name3 }}
         run: |
           result=$(aws ecr describe-repositories --repository-names "${{ env.IMAGE_NAME1 }}" | jq -r '.repositories[0].repositoryName')
-          echo "repo_name=$result" >> $GITHUB_ENV
+          echo "repo_name1=$result" >> $GITHUB_ENV
           result=$(aws ecr describe-repositories --repository-names "${{ env.IMAGE_NAME2 }}" | jq -r '.repositories[0].repositoryName')
-          echo "repo_name=$result" >> $GITHUB_ENV
+          echo "repo_name2=$result" >> $GITHUB_ENV
           result=$(aws ecr describe-repositories --repository-names "${{ env.IMAGE_NAME3 }}" | jq -r '.repositories[0].repositoryName')
-          echo "repo_name=$result" >> $GITHUB_ENV
+          echo "repo_name3=$result" >> $GITHUB_ENV
         continue-on-error: true
 
       - name: Create ECR repository for web app
         env:
           IMAGE_NAME1: ${{ needs.deploy_aws_infrastructure.outputs.image_name1 }}
-        if: env.repo_name != env.IMAGE_NAME1
+        if: env.repo_name1 != env.IMAGE_NAME1
         run: |
           aws ecr create-repository --repository-name ${{ env.IMAGE_NAME1 }}
 
       - name: Create ECR repository for api app
         env:
           IMAGE_NAME2: ${{ needs.deploy_aws_infrastructure.outputs.image_name2 }}
-        if: env.repo_name != env.IMAGE_NAME2
+        if: env.repo_name2 != env.IMAGE_NAME2
         run: |
           aws ecr create-repository --repository-name ${{ env.IMAGE_NAME2 }}
 
       - name: Create ECR repository for redis app
         env:
           IMAGE_NAME3: ${{ needs.deploy_aws_infrastructure.outputs.image_name3 }}
-        if: env.repo_name != env.IMAGE_NAME3
+        if: env.repo_name3 != env.IMAGE_NAME3
         run: |
           aws ecr create-repository --repository-name ${{ env.IMAGE_NAME3 }}
 
