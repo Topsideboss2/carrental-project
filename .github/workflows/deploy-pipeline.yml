@@ -294,6 +294,10 @@ jobs:
           --build-arg CLOUDINARY_API_SECRET=${{ secrets.RDS_ENDPOINT }} \
           api 
 
+      - name: Show docker image names
+        run: |
+            docker images
+
       - name: Retag Docker images
         env:
             IMAGE_NAME1: ${{ needs.deploy_aws_infrastructure.outputs.image_name1 }}
