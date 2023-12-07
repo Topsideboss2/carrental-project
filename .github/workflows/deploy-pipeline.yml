@@ -294,7 +294,7 @@ jobs:
           --build-arg CLOUDINARY_NAME=${{ secrets.RDS_ENDPOINT }} \
           --build-arg CLOUDINARY_API_KEY=${{ secrets.RDS_ENDPOINT }} \
           --build-arg CLOUDINARY_API_SECRET=${{ secrets.RDS_ENDPOINT }} \
-          -t ${{ env.IMAGE_NAME2 }}:${{ secrets.IMAGE_TAG }} carrental/.
+          ${{ env.IMAGE_NAME2 }}:${{ secrets.IMAGE_TAG }} carrental/.
 
       - name: Retag Docker images
         env:
