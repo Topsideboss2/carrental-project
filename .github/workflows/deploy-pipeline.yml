@@ -271,8 +271,11 @@ jobs:
           RDS_ENDPOINT: ${{ needs.deploy_aws_infrastructure.outputs.rds_endpoint }}
         run: |
           docker system prune -af
-          docker build -t ${{ env.IMAGE_NAME1 }}:${{ env.IMAGE_TAG }} -f carrental/web-Dockerfile
           docker build \
+          -f carrental/web-Dockerfile \
+          -t ${{ env.IMAGE_NAME1 }}:${{ env.IMAGE_TAG }}
+          docker build \
+          -f carrental/api-Dockerfile \
           --build-arg DATABASE_URL=postgresql://postgres:topsideboss2@${{ env.RDS_ENDPOINT }}:5432/carrental \
           --build-arg REDIS_HOST=${{ env.IMAGE_NAME3 }} \
           --build-arg REDIS_PORT=${{ secrets.REDIS_PORT }} \
@@ -292,7 +295,7 @@ jobs:
           --build-arg CLOUDINARY_NAME=${{ secrets.CLOUDINARY_NAME }} \
           --build-arg CLOUDINARY_API_KEY=${{ secrets.CLOUDINARY_API_KEY }} \
           --build-arg CLOUDINARY_API_SECRET=${{ secrets.CLOUDINARY_API_SECRET }} \
-          -t ${{ env.IMAGE_NAME2 }}:${{ env.IMAGE_TAG }} -f carrental/api-Dockerfile
+          -t ${{ env.IMAGE_NAME2 }}:${{ env.IMAGE_TAG }}
 
       - name: Show docker image names
         run: |
