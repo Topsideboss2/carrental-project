@@ -270,8 +270,8 @@ jobs:
           IMAGE_TAG: ${{ needs.deploy_aws_infrastructure.outputs.image_tag }}
           RDS_ENDPOINT: ${{ needs.deploy_aws_infrastructure.outputs.rds_endpoint }}
         run: |
-          docker compose build redis .
-          docker compose build web .
+          docker compose build redis
+          docker compose build web
           docker compose build \
           --build-arg RDS_ENDPOINT=${{ env.RDS_ENDPOINT }} \
           --build-arg REDIS_HOST=${{ secrets.RDS_ENDPOINT }} \
