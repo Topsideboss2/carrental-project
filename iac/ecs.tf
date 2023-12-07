@@ -35,7 +35,35 @@ resource "aws_ecs_task_definition" "ecs_task_definition" {
   container_definitions = jsonencode([
     {
       name      = "${var.project_name}-${var.environment}-container"
-      image     = "${local.secrets.ecr_registry}/${var.image_name}:${var.image_tag}"
+      image     = "${local.secrets.ecr_registry}/${var.image_name2}:${var.image_tag}"
+      essential = true
+
+      portMappings = [
+        {
+          containerPort = 3333
+          hostPort      = 3333
+        }
+      ]
+
+      environmentFiles = [
+        {
+          value = "arn:aws:s3:::${var.project_name}-${var.env_file_bucket_name}/${var.env_file_name}"
+          type  = "s3"
+        }
+      ]
+
+      logConfiguration = {
+        logDriver = "awslogs",
+        options = {
+          "awslogs-group"         = "${aws_cloudwatch_log_group.log_group.name}",
+          "awslogs-region"        = "${var.region}",
+          "awslogs-stream-prefix" = "ecs"
+        }
+      }
+    },
+    {
+      name      = "${var.project_name}-${var.environment}-container"
+      image     = "${local.secrets.ecr_registry}/${var.image_name1}:${var.image_tag}"
       essential = true
 
       portMappings = [
@@ -45,10 +73,24 @@ resource "aws_ecs_task_definition" "ecs_task_definition" {
         }
       ]
 
-      environmentFiles = [
+      logConfiguration = {
+        logDriver = "awslogs",
+        options = {
+          "awslogs-group"         = "${aws_cloudwatch_log_group.log_group.name}",
+          "awslogs-region"        = "${var.region}",
+          "awslogs-stream-prefix" = "ecs"
+        }
+      }
+    },
+    {
+      name      = "${var.project_name}-${var.environment}-container"
+      image     = "${local.secrets.ecr_registry}/${var.image_name3}:${var.image_tag}"
+      essential = true
+
+      portMappings = [
         {
-          value = "arn:aws:s3:::${var.project_name}-${var.env_file_bucket_name}/${var.env_file_name}"
-          type  = "s3"
+          containerPort = 6379
+          hostPort      = 6379
         }
       ]
 

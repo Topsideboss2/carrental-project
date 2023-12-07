@@ -8,7 +8,7 @@ env:
   AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
   AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
   AWS_REGION: us-east-1
-  TERRAFORM_ACTION: destroy
+  TERRAFORM_ACTION: apply
 
 jobs:
   # Configure AWS credentials 
@@ -50,8 +50,22 @@ jobs:
         if: env.TERRAFORM_ACTION == 'apply'
         working-directory: ./iac
         run: |
-          IMAGE_NAME_VALUE=$(terraform output -raw image_name | grep -Eo "^[^:]+" | tail -n 1)
-          echo "IMAGE_NAME=$IMAGE_NAME_VALUE" >> $GITHUB_ENV
+          IMAGE_NAME_VALUE=$(terraform output -raw image_name1 | grep -Eo "^[^:]+" | tail -n 1)
+          echo "IMAGE_NAME1=$IMAGE_NAME_VALUE" >> $GITHUB_ENV
+
+      - name: Get Terraform output image name
+        if: env.TERRAFORM_ACTION == 'apply'
+        working-directory: ./iac
+        run: |
+          IMAGE_NAME_VALUE=$(terraform output -raw image_name2 | grep -Eo "^[^:]+" | tail -n 1)
+          echo "IMAGE_NAME2=$IMAGE_NAME_VALUE" >> $GITHUB_ENV
+
+      - name: Get Terraform output image name
+        if: env.TERRAFORM_ACTION == 'apply'
+        working-directory: ./iac
+        run: |
+          IMAGE_NAME_VALUE=$(terraform output -raw image_name3 | grep -Eo "^[^:]+" | tail -n 1)
+          echo "IMAGE_NAME3=$IMAGE_NAME_VALUE" >> $GITHUB_ENV
 
       - name: Get Terraform output domain name
         if: env.TERRAFORM_ACTION == 'apply'
@@ -128,7 +142,9 @@ jobs:
 
     outputs:
       terraform_action: ${{ env.TERRAFORM_ACTION }}
-      image_name: ${{ env.IMAGE_NAME }}
+      image_name1: ${{ env.IMAGE_NAME1 }}
+      image_name2: ${{ env.IMAGE_NAME2 }}
+      image_name3: ${{ env.IMAGE_NAME3 }}
       domain_name: ${{ env.DOMAIN_NAME }}
       rds_endpoint: ${{ env.RDS_ENDPOINT }}
       image_tag: ${{ env.IMAGE_TAG }}
@@ -155,18 +171,39 @@ jobs:
 
       - name: Check if ECR repository exists
         env:
-          IMAGE_NAME: ${{ needs.deploy_aws_infrastructure.outputs.image_name }}
+          IMAGE_NAME1: ${{ needs.deploy_aws_infrastructure.outputs.image_name1 }}
+          IMAGE_NAME2: ${{ needs.deploy_aws_infrastructure.outputs.image_name2 }}
+          IMAGE_NAME3: ${{ needs.deploy_aws_infrastructure.outputs.image_name3 }}
         run: |
-          result=$(aws ecr describe-repositories --repository-names "${{ env.IMAGE_NAME }}" | jq -r '.repositories[0].repositoryName')
+          result=$(aws ecr describe-repositories --repository-names "${{ env.IMAGE_NAME1 }}" | jq -r '.repositories[0].repositoryName')
+          echo "repo_name=$result" >> $GITHUB_ENV
+          result=$(aws ecr describe-repositories --repository-names "${{ env.IMAGE_NAME2 }}" | jq -r '.repositories[0].repositoryName')
+          echo "repo_name=$result" >> $GITHUB_ENV
+          result=$(aws ecr describe-repositories --repository-names "${{ env.IMAGE_NAME3 }}" | jq -r '.repositories[0].repositoryName')
           echo "repo_name=$result" >> $GITHUB_ENV
         continue-on-error: true
 
-      - name: Create ECR repository
+      - name: Create ECR repository for web app
         env:
-          IMAGE_NAME: ${{ needs.deploy_aws_infrastructure.outputs.image_name }}
-        if: env.repo_name != env.IMAGE_NAME
+          IMAGE_NAME1: ${{ needs.deploy_aws_infrastructure.outputs.image_name1 }}
+        if: env.repo_name != env.IMAGE_NAME1
         run: |
-          aws ecr create-repository --repository-name ${{ env.IMAGE_NAME }}     
+          aws ecr create-repository --repository-name ${{ env.IMAGE_NAME1 }}
+
+      - name: Create ECR repository for api app
+        env:
+          IMAGE_NAME2: ${{ needs.deploy_aws_infrastructure.outputs.image_name2 }}
+        if: env.repo_name != env.IMAGE_NAME2
+        run: |
+          aws ecr create-repository --repository-name ${{ env.IMAGE_NAME2 }}
+
+      - name: Create ECR repository for redis app
+        env:
+          IMAGE_NAME3: ${{ needs.deploy_aws_infrastructure.outputs.image_name3 }}
+        if: env.repo_name != env.IMAGE_NAME3
+        run: |
+          aws ecr create-repository --repository-name ${{ env.IMAGE_NAME3 }}
+
 
   # Start self-hosted EC2 runner
   start_runner:
@@ -207,3 +244,74 @@ jobs:
     outputs:
       label: ${{ steps.start-ec2-runner.outputs.label }}
       ec2-instance-id: ${{ steps.start-ec2-runner.outputs.ec2-instance-id }}
+
+  # Build and push Docker image to ECR
+  build_and_push_image:
+    name: Build and push Docker images to ECR
+    needs:
+      - configure_aws_credentials
+      - deploy_aws_infrastructure
+      - create_ecr_repository
+      - start_runner
+    if: needs.deploy_aws_infrastructure.outputs.terraform_action != 'destroy'
+    runs-on: self-hosted
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Build Docker images
+        env:
+          IMAGE_NAME1: ${{ needs.deploy_aws_infrastructure.outputs.image_name1 }}
+          IMAGE_NAME2: ${{ needs.deploy_aws_infrastructure.outputs.image_name2 }}
+          IMAGE_NAME3: ${{ needs.deploy_aws_infrastructure.outputs.image_name3 }}
+          IMAGE_TAG: ${{ needs.deploy_aws_infrastructure.outputs.image_tag }}
+          RDS_ENDPOINT: ${{ needs.deploy_aws_infrastructure.outputs.rds_endpoint }}
+        run: |
+          docker compose build -d \
+          -t ${{ env.IMAGE_NAME3 }}:${{ env.IMAGE_TAG }} carrental/.
+          docker compose build -d \
+          -t ${{ env.IMAGE_NAME1 }}:${{ env.IMAGE_TAG }} carrental/.
+          docker compose build -d \
+          --build-arg RDS_ENDPOINT=${{ env.RDS_ENDPOINT }} \
+          --build-arg REDIS_HOST=${{ secrets.RDS_ENDPOINT }} \
+          --build-arg REDIS_PORT=${{ secrets.RDS_ENDPOINT }} \
+          --build-arg REDIS_TTL=${{ secrets.RDS_ENDPOINT }} \
+          --build-arg REDIS_PASSWORD=${{ secrets.RDS_ENDPOINT }} \
+          --build-arg JWT_SECRET=${{ secrets.RDS_ENDPOINT }} \
+          --build-arg REFRESH_TOKEN_SECRET=${{ secrets.RDS_ENDPOINT }} \
+          --build-arg REFRESH_TOKEN_EXPIRATION=${{ secrets.RDS_ENDPOINT }} \
+          --build-arg FUTUREFAST_NOTIFICATION_URL=${{ secrets.RDS_ENDPOINT }} \
+          --build-arg FUTUREFAST_NOTIFICATION_APP_CODE=${{ secrets.RDS_ENDPOINT }} \
+          --build-arg MPESA_SHORTCODE=${{ secrets.RDS_ENDPOINT }} \
+          --build-arg MPESA_PASSKEY=${{ secrets.RDS_ENDPOINT }} \
+          --build-arg MPESA_CONSUMER_KEY=${{ secrets.RDS_ENDPOINT }} \
+          --build-arg MPESA_CONSUMER_SECRET=${{ secrets.RDS_ENDPOINT }} \
+          --build-arg MPESA_CALLBACK_URL=${{ secrets.RDS_ENDPOINT }} \
+          --build-arg SAFARICOM_URL=${{ secrets.RDS_ENDPOINT }} \
+          --build-arg CLOUDINARY_NAME=${{ secrets.RDS_ENDPOINT }} \
+          --build-arg CLOUDINARY_API_KEY=${{ secrets.RDS_ENDPOINT }} \
+          --build-arg CLOUDINARY_API_SECRET=${{ secrets.RDS_ENDPOINT }} \
+          -t ${{ env.IMAGE_NAME2 }}:${{ secrets.IMAGE_TAG }} carrental/.
+
+      - name: Retag Docker images
+        env:
+            IMAGE_NAME1: ${{ needs.deploy_aws_infrastructure.outputs.image_name1 }}
+            IMAGE_NAME2: ${{ needs.deploy_aws_infrastructure.outputs.image_name2 }}
+            IMAGE_NAME3: ${{ needs.deploy_aws_infrastructure.outputs.image_name3 }}
+        run: |
+          docker tag ${{ env.IMAGE_NAME1 }} ${{ secrets.ECR_REGISTRY }}/${{ env.IMAGE_NAME1 }}
+          docker tag ${{ env.IMAGE_NAME2 }} ${{ secrets.ECR_REGISTRY }}/${{ env.IMAGE_NAME2 }}
+          docker tag ${{ env.IMAGE_NAME3 }} ${{ secrets.ECR_REGISTRY }}/${{ env.IMAGE_NAME3 }}
+
+      - name: Push Docker Images to Amazon ECR
+        env:
+            IMAGE_NAME1: ${{ needs.deploy_aws_infrastructure.outputs.image_name1 }}
+            IMAGE_NAME2: ${{ needs.deploy_aws_infrastructure.outputs.image_name2 }}
+            IMAGE_NAME3: ${{ needs.deploy_aws_infrastructure.outputs.image_name3 }}
+        run: |
+            docker push ${{ secrets.ECR_REGISTRY }}/${{ env.IMAGE_NAME1 }}
+            docker push ${{ secrets.ECR_REGISTRY }}/${{ env.IMAGE_NAME2 }}
+            docker push ${{ secrets.ECR_REGISTRY }}/${{ env.IMAGE_NAME3 }}

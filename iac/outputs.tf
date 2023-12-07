@@ -1,7 +1,15 @@
 ### outputs needed to create ecr repository
-# export the image name
-output "image_name" {
-  value = var.image_name
+# export the image names
+output "image_name1" {
+  value = var.image_name1
+}
+
+output "image_name2" {
+  value = var.image_name1
+}
+
+output "image_name3" {
+  value = var.image_name1
 }
 
 ### outputs needed to build docker image

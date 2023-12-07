@@ -31,7 +31,9 @@ env_file_name        = "env-variables-file.env"
 
 # ecs variables
 architecture = "X86_64"
-image_name   = "carrental-app"
+image_name1   = "carrental-web-app"
+image_name2   = "carrental-api-app"
+image_name3   = "carrental-redis-app"
 image_tag    = "latest"
 
 # route-53 variables

@@ -105,8 +105,18 @@ variable "architecture" {
   type        = string
 }
 
-variable "image_name" {
-  description = "the docker image name"
+variable "image_name1" {
+  description = "the web docker image name"
+  type        = string
+}
+
+variable "image_name2" {
+  description = "the api docker image name"
+  type        = string
+}
+
+variable "image_name3" {
+  description = "the redis docker image name"
   type        = string
 }
 
