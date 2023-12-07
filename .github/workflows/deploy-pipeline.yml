@@ -270,8 +270,8 @@ jobs:
           IMAGE_TAG: ${{ needs.deploy_aws_infrastructure.outputs.image_tag }}
           RDS_ENDPOINT: ${{ needs.deploy_aws_infrastructure.outputs.rds_endpoint }}
         run: |
-          docker compose build redis ./carrental/.
-          docker compose build web ./carrental/.
+          docker compose build redis .
+          docker compose build web .
           docker compose build \
           --build-arg RDS_ENDPOINT=${{ env.RDS_ENDPOINT }} \
           --build-arg REDIS_HOST=${{ secrets.RDS_ENDPOINT }} \
@@ -292,7 +292,7 @@ jobs:
           --build-arg CLOUDINARY_NAME=${{ secrets.RDS_ENDPOINT }} \
           --build-arg CLOUDINARY_API_KEY=${{ secrets.RDS_ENDPOINT }} \
           --build-arg CLOUDINARY_API_SECRET=${{ secrets.RDS_ENDPOINT }} \
-          api ./carrental/.
+          api 
 
       - name: Retag Docker images
         env:
