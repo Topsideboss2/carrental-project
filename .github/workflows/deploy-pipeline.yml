@@ -269,6 +269,9 @@ jobs:
           IMAGE_NAME3: ${{ needs.deploy_aws_infrastructure.outputs.image_name3 }}
           IMAGE_TAG: ${{ needs.deploy_aws_infrastructure.outputs.image_tag }}
           RDS_ENDPOINT: ${{ needs.deploy_aws_infrastructure.outputs.rds_endpoint }}
+          RDS_DB_NAME: ${{ secrets.RDS_DB_NAME }}
+          RDS_DB_PASSWORD: ${{ secrets.RDS_DB_PASSWORD }}
+          RDS_DB_USERNAME: ${{ secrets.RDS_DB_USERNAME }}
         run: |
           docker system prune -af
           docker build \
@@ -277,6 +280,7 @@ jobs:
           .
           docker build \
           -f carrental/api-Dockerfile \
+          --build-arg DATABASE_URL=postgresql://${{ env.RDS_DB_USERNAME }}:${{ env.RDS_DB_PASSWORD }}@${{ env.RDS_ENDPOINT }}:5432/${{ env.RDS_DB_NAME }} \
           -t ${{ env.IMAGE_NAME2 }}:${{ env.IMAGE_TAG }} \
           .
 
