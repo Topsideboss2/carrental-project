@@ -276,7 +276,7 @@ jobs:
           -t ${{ env.IMAGE_NAME1 }}:${{ env.IMAGE_TAG }} \
           .
           docker build \
-          --build-arg DATABASE_URL=postgresql://postgres:topsideboss2@${{ env.RDS_ENDPOINT }}:5432/carrental \
+          --build-arg DATABASE_URL=postgresql://${{ secrets.RDS_DB_USERNAME }}:${{ secrets.RDS_DB_PASSWORD }}@${{ env.RDS_ENDPOINT }}:5432/${{ secrets.RDS_DB_NAME }} \
           --build-arg REDIS_HOST=${{ env.IMAGE_NAME3 }} \
           --build-arg REDIS_PORT=${{ secrets.REDIS_PORT }} \
           --build-arg REDIS_TTL=${{ secrets.REDIS_TTL }} \
@@ -295,7 +295,7 @@ jobs:
           --build-arg CLOUDINARY_NAME=${{ secrets.CLOUDINARY_NAME }} \
           --build-arg CLOUDINARY_API_KEY=${{ secrets.CLOUDINARY_API_KEY }} \
           --build-arg CLOUDINARY_API_SECRET=${{ secrets.CLOUDINARY_API_SECRET }} \
-          -f carrental/api-Dockerfile \
+          --file carrental/api-Dockerfile \
           -t ${{ env.IMAGE_NAME2 }}:${{ env.IMAGE_TAG }} \
           .
 
@@ -309,8 +309,8 @@ jobs:
             IMAGE_NAME2: ${{ needs.deploy_aws_infrastructure.outputs.image_name2 }}
 #            IMAGE_NAME3: ${{ needs.deploy_aws_infrastructure.outputs.image_name3 }}
         run: |
-          docker tag carrental-github-actions-terraform-ecs-project-web ${{ secrets.ECR_REGISTRY }}/${{ env.IMAGE_NAME1 }}
-          docker tag carrental-github-actions-terraform-ecs-project-api ${{ secrets.ECR_REGISTRY }}/${{ env.IMAGE_NAME2 }}
+          docker tag ${{ env.IMAGE_NAME1 }}:${{ env.IMAGE_TAG }} ${{ secrets.ECR_REGISTRY }}/${{ env.IMAGE_NAME1 }}
+          docker tag ${{ env.IMAGE_NAME2 }}:${{ env.IMAGE_TAG }} ${{ secrets.ECR_REGISTRY }}/${{ env.IMAGE_NAME2 }}
 #          docker tag carrental-redis ${{ secrets.ECR_REGISTRY }}/${{ env.IMAGE_NAME3 }}
 
       - name: Push Docker Images to Amazon ECR
