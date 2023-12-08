@@ -294,8 +294,8 @@ jobs:
             IMAGE_NAME2: ${{ needs.deploy_aws_infrastructure.outputs.image_name2 }}
 #            IMAGE_NAME3: ${{ needs.deploy_aws_infrastructure.outputs.image_name3 }}
         run: |
-          docker tag ${{ env.IMAGE_NAME1 }}:${{ env.IMAGE_TAG }} ${{ secrets.ECR_REGISTRY }}/${{ env.IMAGE_NAME1 }}
-          docker tag ${{ env.IMAGE_NAME2 }}:${{ env.IMAGE_TAG }} ${{ secrets.ECR_REGISTRY }}/${{ env.IMAGE_NAME2 }}
+          docker tag ${{ env.IMAGE_NAME1 }}:1.0 ${{ secrets.ECR_REGISTRY }}/${{ env.IMAGE_NAME1 }}
+          docker tag ${{ env.IMAGE_NAME2 }}:1.0 ${{ secrets.ECR_REGISTRY }}/${{ env.IMAGE_NAME2 }}
 #          docker tag carrental-redis ${{ secrets.ECR_REGISTRY }}/${{ env.IMAGE_NAME3 }}
 
       - name: Push Docker Images to Amazon ECR
