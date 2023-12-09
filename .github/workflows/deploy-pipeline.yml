@@ -288,7 +288,7 @@ jobs:
           --build-arg CLOUDINARY_NAME=${{ secrets.CLOUDINARY_NAME }} \
           --build-arg CLOUDINARY_API_KEY=${{ secrets.CLOUDINARY_API_KEY }} \
           --build-arg CLOUDINARY_API_SECRET=${{ secrets.CLOUDINARY_API_SECRET }} \
-          -t ${{ env.IMAGE_NAME2 }}::${{ env.IMAGE_TAG }} \
+          -t ${{ env.IMAGE_NAME2 }}:${{ env.IMAGE_TAG }} \
           .
 
       - name: Show docker image names
