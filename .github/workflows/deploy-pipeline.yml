@@ -257,7 +257,7 @@ jobs:
           RDS_DB_USERNAME: ${{ secrets.RDS_DB_USERNAME }}
 
         run: |
-          DATABASE_URL=$("postgresql://${{ env.RDS_DB_USERNAME }}:${{ env.RDS_DB_PASSWORD }}@${{ env.RDS_ENDPOINT }}:5432/${{ env.RDS_DB_NAME }}")
+          DATABASE_URL=$(postgresql://${{ env.RDS_DB_USERNAME }}:${{ env.RDS_DB_PASSWORD }}@${{ env.RDS_ENDPOINT }}:5432/${{ env.RDS_DB_NAME }})
           echo "DATABASE_URL=$DATABASE_URL" >> $GITHUB_ENV
 
     outputs:
