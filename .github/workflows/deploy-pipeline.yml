@@ -355,7 +355,7 @@ jobs:
             ENVIRONMENT_FILE_NAME: ${{ needs.deploy_aws_infrastructure.outputs.environment_file_name }}
             RDS_ENDPOINT: ${{ needs.create_db_env.outputs.db_URL }}
         run: |
-          echo "RDS_ENDPOINT=${{ env.RDS_ENDPOINT }}" > ${{ env.ENVIRONMENT_FILE_NAME }}
+          echo "DATABASE_URL=${{ env.RDS_ENDPOINT }}" > ${{ env.ENVIRONMENT_FILE_NAME }}
           echo "REDIS_HOST=${{ secrets.REDIS_HOST }}" >> ${{ env.ENVIRONMENT_FILE_NAME }}
           echo "REDIS_PORT=${{ secrets.REDIS_PORT }}" >> ${{ env.ENVIRONMENT_FILE_NAME }}
           echo "REDIS_TTL=${{ secrets.REDIS_TTL }}" >> ${{ env.ENVIRONMENT_FILE_NAME }}
