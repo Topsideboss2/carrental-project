@@ -236,6 +236,35 @@ jobs:
       label: ${{ steps.start-ec2-runner.outputs.label }}
       ec2-instance-id: ${{ steps.start-ec2-runner.outputs.ec2-instance-id }}
 
+
+  # Build and push Docker image to ECR
+  create_db_env:
+    name: Create Database ENV
+    needs:
+      - configure_aws_credentials
+      - deploy_aws_infrastructure
+      - create_ecr_repository
+      - start_runner
+    if: needs.deploy_aws_infrastructure.outputs.terraform_action != 'destroy'
+    runs-on: self-hosted
+    steps:
+      - name: Create DB ENV
+        id: create-db-env
+        env:
+          RDS_ENDPOINT: ${{ needs.deploy_aws_infrastructure.outputs.rds_endpoint }}
+          RDS_DB_NAME: ${{ secrets.RDS_DB_NAME }}
+          RDS_DB_PASSWORD: ${{ secrets.RDS_DB_PASSWORD }}
+          RDS_DB_USERNAME: ${{ secrets.RDS_DB_USERNAME }}
+
+        run: |
+          DATABASE_URL="postgresql://${{ env.RDS_DB_USERNAME }}:${{ env.RDS_DB_PASSWORD }}@${{ env.RDS_ENDPOINT }}:5432/${{ env.RDS_DB_NAME }}"
+          echo DATABASE_URL
+          echo "DATABASE_URL=$DATABASE_URL" >> $GITHUB_ENV
+
+    outputs:
+      db_URL: ${{ env.DATABASE_URL }}
+
+
   # Build and push Docker image to ECR
   build_and_push_image:
     name: Build and push Docker images to ECR
@@ -244,6 +273,7 @@ jobs:
       - deploy_aws_infrastructure
       - create_ecr_repository
       - start_runner
+      - create_db_env
     if: needs.deploy_aws_infrastructure.outputs.terraform_action != 'destroy'
     runs-on: self-hosted
     steps:
@@ -258,10 +288,7 @@ jobs:
           IMAGE_NAME1: ${{ needs.deploy_aws_infrastructure.outputs.image_name1 }}
           IMAGE_NAME2: ${{ needs.deploy_aws_infrastructure.outputs.image_name2 }}
           IMAGE_TAG: ${{ needs.deploy_aws_infrastructure.outputs.image_tag }}
-          RDS_ENDPOINT: ${{ needs.deploy_aws_infrastructure.outputs.rds_endpoint }}
-          RDS_DB_NAME: ${{ secrets.RDS_DB_NAME }}
-          RDS_DB_PASSWORD: ${{ secrets.RDS_DB_PASSWORD }}
-          RDS_DB_USERNAME: ${{ secrets.RDS_DB_USERNAME }}
+
         run: |
           docker build \
           -f carrental/web-Dockerfile \
@@ -269,7 +296,7 @@ jobs:
           .
           docker build \
           -f carrental/api-Dockerfile \
-          --build-arg DATABASE_URL="postgresql://${{ env.RDS_DB_USERNAME }}:${{ env.RDS_DB_PASSWORD }}@${{ env.RDS_ENDPOINT }}:5432/${{ env.RDS_DB_NAME }}" \
+          --build-arg DATABASE_URL=${{ needs.create_db_env.outputs.db_URL }} \
           --build-arg REDIS_HOST=${{ env.IMAGE_NAME3 }} \
           --build-arg REDIS_PORT=${{ secrets.REDIS_PORT }} \
           --build-arg REDIS_TTL=${{ secrets.REDIS_TTL }} \
