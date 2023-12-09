@@ -84,9 +84,16 @@ resource "aws_ecs_task_definition" "ecs_task_definition" {
     },
     {
       name      = "${var.project_name}-${var.environment}-redis-container"
-      image     = "${local.secrets.ecr_registry}/${var.image_name3}:${var.image_tag}"
+      image     = "public.ecr.aws/ubuntu/redis:latest"
       essential = true
 
+      environment = [
+        {
+          name = "REDIS_PASSWORD"
+          value = "${local.secrets.redis_password}"
+        }
+      ]
+      
       portMappings = [
         {
           containerPort = 6379
