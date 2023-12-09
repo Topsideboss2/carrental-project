@@ -5,11 +5,11 @@ output "image_name1" {
 }
 
 output "image_name2" {
-  value = var.image_name1
+  value = var.image_name2
 }
 
 output "image_name3" {
-  value = var.image_name1
+  value = var.image_name3
 }
 
 ### outputs needed to build docker image
