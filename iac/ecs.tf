@@ -52,6 +52,11 @@ resource "aws_ecs_task_definition" "ecs_task_definition" {
         }
       ]
 
+      dependsOn   = [{
+        containerName = "${var.project_name}-${var.environment}-redis-container"
+        condition     = "COMPLETE"
+      }]
+
       logConfiguration = {
         logDriver = "awslogs",
         options = {
@@ -93,7 +98,7 @@ resource "aws_ecs_task_definition" "ecs_task_definition" {
           value = "${local.secrets.redis_password}"
         }
       ]
-      
+
       portMappings = [
         {
           containerPort = 6379
