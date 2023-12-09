@@ -113,6 +113,14 @@ resource "aws_security_group" "app_server_security_group" {
     security_groups = [aws_security_group.alb_security_group.id]
   }
 
+  # allow inbound traffic from the same security group on port 6379
+  ingress {
+    from_port   = 6379
+    to_port     = 6379
+    protocol    = "tcp"
+    self = true
+  }
+
   # allow inbound traffic from the private subnet on port 5432
   ingress {
     from_port   = 5432
