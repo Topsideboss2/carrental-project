@@ -5,12 +5,12 @@ CONTAINER_FIRST_STARTUP="CONTAINER_FIRST_STARTUP"
 if [ ! -e /$CONTAINER_FIRST_STARTUP ]; then
     touch /$CONTAINER_FIRST_STARTUP
     # place your script that you only want to run on first startup.
-    npx prisma migrate dev && npx nx run api:seed:permissions && npx nx run api:seed:user && npx prisma generate && npx nx build api && cd /app/dist/apps/api/
+    npx prisma migrate dev && npx prisma generate && npx nx build api && cd /app/dist/apps/api/
 else
     # script that should run the rest of the times (instances where you 
     # stop/restart containers).
     cd /app/dist/apps/api/ 
 fi
 
-pm2 start /app/dist/apps/api/main.js
+pm2 start main.js
 pm2 logs
