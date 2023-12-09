@@ -173,14 +173,12 @@ jobs:
         env:
           IMAGE_NAME1: ${{ needs.deploy_aws_infrastructure.outputs.image_name1 }}
           IMAGE_NAME2: ${{ needs.deploy_aws_infrastructure.outputs.image_name2 }}
-          IMAGE_NAME3: ${{ needs.deploy_aws_infrastructure.outputs.image_name3 }}
+
         run: |
           result=$(aws ecr describe-repositories --repository-names "${{ env.IMAGE_NAME1 }}" | jq -r '.repositories[0].repositoryName')
           echo "repo_name1=$result" >> $GITHUB_ENV
           result=$(aws ecr describe-repositories --repository-names "${{ env.IMAGE_NAME2 }}" | jq -r '.repositories[0].repositoryName')
           echo "repo_name2=$result" >> $GITHUB_ENV
-          result=$(aws ecr describe-repositories --repository-names "${{ env.IMAGE_NAME3 }}" | jq -r '.repositories[0].repositoryName')
-          echo "repo_name3=$result" >> $GITHUB_ENV
         continue-on-error: true
 
       - name: Create ECR repository for web app
@@ -196,13 +194,6 @@ jobs:
         if: env.repo_name2 != env.IMAGE_NAME2
         run: |
           aws ecr create-repository --repository-name ${{ env.IMAGE_NAME2 }}
-
-      - name: Create ECR repository for redis app
-        env:
-          IMAGE_NAME3: ${{ needs.deploy_aws_infrastructure.outputs.image_name3 }}
-        if: env.repo_name3 != env.IMAGE_NAME3
-        run: |
-          aws ecr create-repository --repository-name ${{ env.IMAGE_NAME3 }}
 
 
   # Start self-hosted EC2 runner
@@ -266,7 +257,6 @@ jobs:
         env:
           IMAGE_NAME1: ${{ needs.deploy_aws_infrastructure.outputs.image_name1 }}
           IMAGE_NAME2: ${{ needs.deploy_aws_infrastructure.outputs.image_name2 }}
-          IMAGE_NAME3: ${{ needs.deploy_aws_infrastructure.outputs.image_name3 }}
           IMAGE_TAG: ${{ needs.deploy_aws_infrastructure.outputs.image_tag }}
           RDS_ENDPOINT: ${{ needs.deploy_aws_infrastructure.outputs.rds_endpoint }}
           RDS_DB_NAME: ${{ secrets.RDS_DB_NAME }}
@@ -275,7 +265,7 @@ jobs:
         run: |
           docker build \
           -f carrental/web-Dockerfile \
-          -t ${{ env.IMAGE_NAME1 }}:1.0 \
+          -t ${{ env.IMAGE_NAME1 }}:${{ env.IMAGE_TAG }} \
           .
           docker build \
           -f carrental/api-Dockerfile \
@@ -309,21 +299,17 @@ jobs:
         env:
             IMAGE_NAME1: ${{ needs.deploy_aws_infrastructure.outputs.image_name1 }}
             IMAGE_NAME2: ${{ needs.deploy_aws_infrastructure.outputs.image_name2 }}
-#            IMAGE_NAME3: ${{ needs.deploy_aws_infrastructure.outputs.image_name3 }}
         run: |
-          docker tag ${{ env.IMAGE_NAME1 }}:1.0 ${{ secrets.ECR_REGISTRY }}/${{ env.IMAGE_NAME1 }}
-          docker tag ${{ env.IMAGE_NAME2 }}:1.0 ${{ secrets.ECR_REGISTRY }}/${{ env.IMAGE_NAME2 }}
-#          docker tag carrental-redis ${{ secrets.ECR_REGISTRY }}/${{ env.IMAGE_NAME3 }}
+          docker tag ${{ env.IMAGE_NAME1 }}:${{ env.IMAGE_TAG }} ${{ secrets.ECR_REGISTRY }}/${{ env.IMAGE_NAME1 }}
+          docker tag ${{ env.IMAGE_NAME2 }}:${{ env.IMAGE_TAG }} ${{ secrets.ECR_REGISTRY }}/${{ env.IMAGE_NAME2 }}
 
       - name: Push Docker Images to Amazon ECR
         env:
             IMAGE_NAME1: ${{ needs.deploy_aws_infrastructure.outputs.image_name1 }}
             IMAGE_NAME2: ${{ needs.deploy_aws_infrastructure.outputs.image_name2 }}
-            IMAGE_NAME3: ${{ needs.deploy_aws_infrastructure.outputs.image_name3 }}
         run: |
             docker push ${{ secrets.ECR_REGISTRY }}/${{ env.IMAGE_NAME1 }}
             docker push ${{ secrets.ECR_REGISTRY }}/${{ env.IMAGE_NAME2 }}
-#            docker push ${{ secrets.ECR_REGISTRY }}/${{ env.IMAGE_NAME3 }}
 
 
   # Create environment file and export to S3 
@@ -389,3 +375,43 @@ jobs:
           label: ${{ needs.start_runner.outputs.label }}
           ec2-instance-id: ${{ needs.start_runner.outputs.ec2-instance-id }}
 
+
+  # Create new task definition revision
+  create_td_revision:
+    name: Create new task definition revision
+    needs: 
+      - configure_aws_credentials
+      - deploy_aws_infrastructure 
+      - create_ecr_repository
+      - start_runner
+      - build_and_push_image
+      - export_env_variables
+      - stop_runner
+    if: needs.deploy_aws_infrastructure.outputs.terraform_action != 'destroy'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create new task definition revision
+        env:
+          ECS_FAMILY: ${{ needs.deploy_aws_infrastructure.outputs.task_definition_name }}
+          ECS_IMAGE1: ${{ secrets.ECR_REGISTRY }}/${{ needs.deploy_aws_infrastructure.outputs.image_name1 }}:${{ needs.deploy_aws_infrastructure.outputs.image_tag }}
+          ECS_IMAGE2: ${{ secrets.ECR_REGISTRY }}/${{ needs.deploy_aws_infrastructure.outputs.image_name2 }}:${{ needs.deploy_aws_infrastructure.outputs.image_tag }}
+        run: |
+          # Get existing task definition
+          TASK_DEFINITION=$(aws ecs describe-task-definition --task-definition ${{ env.ECS_FAMILY }})
+
+          # update the existing task definition by performing the following actions:
+          # 1. Update the `containerDefinitions[0].image` to the new image we want to deploy
+          # 2. Remove fields from the task definition that are not compatibile with `register-task-definition` --cli-input-json
+          NEW_TASK_DEFINITION=$(echo "$TASK_DEFINITION" | jq --arg IMAGE1 "${{ env.ECS_IMAGE1 }}" --arg IMAGE2 "${{ env.ECS_IMAGE2 }}" '.taskDefinition | .containerDefinitions[0].image = $IMAGE2 | .containerDefinitions[1].image = $IMAGE1 | del(.taskDefinitionArn) | del(.revision) | del(.status) | del(.requiresAttributes) | del(.compatibilities) | del(.registeredAt) | del(.registeredBy)')
+
+          # Register the new task definition and capture the output as JSON
+          NEW_TASK_INFO=$(aws ecs register-task-definition --cli-input-json "$NEW_TASK_DEFINITION")
+
+          # Grab the new revision from the output
+          NEW_TD_REVISION=$(echo "$NEW_TASK_INFO" | jq '.taskDefinition.revision')
+
+          # Set the new revision as an environment variable
+          echo "NEW_TD_REVISION=$NEW_TD_REVISION" >> $GITHUB_ENV
+
+    outputs:
+      new_td_revision: ${{ env.NEW_TD_REVISION }}
