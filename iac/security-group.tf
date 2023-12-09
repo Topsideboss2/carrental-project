@@ -38,18 +38,18 @@ resource "aws_security_group" "runner_security_group" {
   description = "enable only outbound https access on port 443"
   vpc_id      = aws_vpc.vpc.id
 
-  # allow inbound traffic from the same security group on port 3306
+  # allow inbound traffic from the same security group on port 5432
   ingress {
-    from_port   = 3306
-    to_port     = 3306
+    from_port   = 5432
+    to_port     = 5432
     protocol    = "tcp"
     self = true
   }
 
-  # allow inbound traffic from the private subnet on port 3306
+  # allow inbound traffic from the private subnet on port 5432
   ingress {
-    from_port   = 3306
-    to_port     = 3306
+    from_port   = 5432
+    to_port     = 5432
     protocol    = "tcp"
     cidr_blocks = [
       var.private_data_subnet_az1_cidr,
@@ -128,13 +128,13 @@ resource "aws_security_group" "app_server_security_group" {
 # create security group for the database
 resource "aws_security_group" "database_security_group" {
   name        = "${var.project_name}-${var.environment}-database-sg"
-  description = "enable mysql/aurora access on port 3306"
+  description = "enable postgreSQL access on port 5432"
   vpc_id      = aws_vpc.vpc.id
 
   ingress {
-    description     = "mysql/aurora access"
-    from_port       = 3306
-    to_port         = 3306
+    description     = "postgreSQL access"
+    from_port       = 5432
+    to_port         = 5432
     protocol        = "tcp"
     security_groups = [aws_security_group.app_server_security_group.id]
   }
