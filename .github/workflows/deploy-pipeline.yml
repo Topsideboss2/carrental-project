@@ -283,6 +283,22 @@ jobs:
           --build-arg DATABASE_URL=postgresql://${{ env.RDS_DB_USERNAME }}:${{ env.RDS_DB_PASSWORD }}@${{ env.RDS_ENDPOINT }}:5432/${{ env.RDS_DB_NAME }} \
           --build-arg REDIS_HOST=${{ env.IMAGE_NAME3 }} \
           --build-arg REDIS_PORT=${{ secrets.REDIS_PORT }} \
+          --build-arg REDIS_TTL=${{ secrets.REDIS_TTL }} \
+          --build-arg REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }} \
+          --build-arg JWT_SECRET=${{ secrets.JWT_SECRET }} \
+          --build-arg REFRESH_TOKEN_SECRET=${{ secrets.REFRESH_TOKEN_SECRET }} \
+          --build-arg REFRESH_TOKEN_EXPIRATION=${{ secrets.REFRESH_TOKEN_EXPIRATION }} \
+          --build-arg FUTUREFAST_NOTIFICATION_URL=${{ secrets.FUTUREFAST_NOTIFICATION_URL }} \
+          --build-arg FUTUREFAST_NOTIFICATION_APP_CODE=${{ secrets.FUTUREFAST_NOTIFICATION_APP_CODE }} \
+          --build-arg MPESA_SHORTCODE=${{ secrets.MPESA_SHORTCODE }} \
+          --build-arg MPESA_PASSKEY=${{ secrets.MPESA_PASSKEY }} \
+          --build-arg MPESA_CONSUMER_KEY=${{ secrets.MPESA_CONSUMER_KEY }} \
+          --build-arg MPESA_CONSUMER_SECRET=${{ secrets.MPESA_CONSUMER_SECRET }} \
+          --build-arg MPESA_CALLBACK_URL=${{ secrets.MPESA_CALLBACK_URL }} \
+          --build-arg SAFARICOM_URL=${{ secrets.SAFARICOM_URL }} \
+          --build-arg CLOUDINARY_NAME=${{ secrets.CLOUDINARY_NAME }} \
+          --build-arg CLOUDINARY_API_KEY=${{ secrets.CLOUDINARY_API_KEY }} \
+          --build-arg CLOUDINARY_API_SECRET=${{ secrets.CLOUDINARY_API_SECRET }} \
           -t ${{ env.IMAGE_NAME2 }}:1.0 \
           .
 
