@@ -345,6 +345,7 @@ jobs:
       - configure_aws_credentials
       - deploy_aws_infrastructure
       - start_runner
+      - create_db_env
       - build_and_push_image
     if: needs.deploy_aws_infrastructure.outputs.terraform_action != 'destroy'
     runs-on: ubuntu-latest
@@ -352,7 +353,7 @@ jobs:
       - name: Export environment variable values to file
         env:
             ENVIRONMENT_FILE_NAME: ${{ needs.deploy_aws_infrastructure.outputs.environment_file_name }}
-            RDS_ENDPOINT: ${{ needs.deploy_aws_infrastructure.outputs.rds_endpoint }}
+            RDS_ENDPOINT: ${{ needs.create_db_env.outputs.db_URL }}
         run: |
           echo "RDS_ENDPOINT=${{ env.RDS_ENDPOINT }}" > ${{ env.ENVIRONMENT_FILE_NAME }}
           echo "REDIS_HOST=${{ secrets.REDIS_HOST }}" >> ${{ env.ENVIRONMENT_FILE_NAME }}
