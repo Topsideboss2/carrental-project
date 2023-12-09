@@ -113,14 +113,6 @@ resource "aws_security_group" "app_server_security_group" {
     security_groups = [aws_security_group.alb_security_group.id]
   }
 
-  # allow inbound traffic from the same security group on port 5432
-  ingress {
-    from_port   = 5432
-    to_port     = 5432
-    protocol    = "tcp"
-    self = true
-  }
-
   # allow inbound traffic from the private subnet on port 5432
   ingress {
     from_port   = 5432
@@ -171,9 +163,10 @@ resource "aws_security_group" "database_security_group" {
 
   egress {
     from_port   = 0
-    to_port     = 0
-    protocol    = -1
+    to_port     = 65535
+    protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
+    security_groups = [aws_security_group.app_server_security_group.id]
   }
 
   tags = {
