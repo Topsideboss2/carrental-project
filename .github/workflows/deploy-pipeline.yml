@@ -273,7 +273,6 @@ jobs:
           RDS_DB_PASSWORD: ${{ secrets.RDS_DB_PASSWORD }}
           RDS_DB_USERNAME: ${{ secrets.RDS_DB_USERNAME }}
         run: |
-          docker system prune -af
           docker build \
           -f carrental/web-Dockerfile \
           -t ${{ env.IMAGE_NAME1 }}:1.0 \
@@ -389,3 +388,4 @@ jobs:
           github-token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
           label: ${{ needs.start_runner.outputs.label }}
           ec2-instance-id: ${{ needs.start_runner.outputs.ec2-instance-id }}
+
