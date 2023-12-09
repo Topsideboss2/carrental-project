@@ -257,7 +257,7 @@ jobs:
           RDS_DB_USERNAME: ${{ secrets.RDS_DB_USERNAME }}
 
         run: |
-          DATABASE_URL="postgresql://${{ env.RDS_DB_USERNAME }}:${{ env.RDS_DB_PASSWORD }}@${{ env.RDS_ENDPOINT }}:5432/${{ env.RDS_DB_NAME }}"
+          DATABASE_URL=$("postgresql://${{ env.RDS_DB_USERNAME }}:${{ env.RDS_DB_PASSWORD }}@${{ env.RDS_ENDPOINT }}:5432/${{ env.RDS_DB_NAME }}")
           echo "DATABASE_URL=$DATABASE_URL" >> $GITHUB_ENV
 
     outputs:
@@ -353,9 +353,9 @@ jobs:
       - name: Export environment variable values to file
         env:
             ENVIRONMENT_FILE_NAME: ${{ needs.deploy_aws_infrastructure.outputs.environment_file_name }}
-            RDS_ENDPOINT: ${{ needs.create_db_env.outputs.db_URL }}
+            DATABASE_URL: ${{ needs.create_db_env.outputs.db_URL }}
         run: |
-          echo "DATABASE_URL=${{ env.RDS_ENDPOINT }}" > ${{ env.ENVIRONMENT_FILE_NAME }}
+          echo "DATABASE_URL=${{ env.DATABASE_URL }}" > ${{ env.ENVIRONMENT_FILE_NAME }}
           echo "REDIS_HOST=${{ secrets.REDIS_HOST }}" >> ${{ env.ENVIRONMENT_FILE_NAME }}
           echo "REDIS_PORT=${{ secrets.REDIS_PORT }}" >> ${{ env.ENVIRONMENT_FILE_NAME }}
           echo "REDIS_TTL=${{ secrets.REDIS_TTL }}" >> ${{ env.ENVIRONMENT_FILE_NAME }}
