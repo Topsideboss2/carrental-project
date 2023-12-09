@@ -36,7 +36,6 @@ resource "aws_ecs_task_definition" "ecs_task_definition" {
     {
       name      = "${var.project_name}-${var.environment}-api-container"
       image     = "${local.secrets.ecr_registry}/${var.image_name2}:${var.image_tag}"
-      essential = true
 
       portMappings = [
         {
