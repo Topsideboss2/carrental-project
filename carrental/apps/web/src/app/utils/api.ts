@@ -6,13 +6,13 @@ interface InstanceConfig {
 }
 
 const instance: AxiosInstance = axios.create({
-  baseURL: 'https://backend-carrental.jibiwa.com/api/',
+  baseURL: 'http://localhost/api/',
   timeout: 15000,
 });
 
 export default instance;
 
-export const imageUrl = 'https://backend-carrental.jibiwa.com/storage';
+export const imageUrl = 'http://localhost/storage';
 
 const responseBody = <T>(response: AxiosResponse<T>): T => response.data;
 
