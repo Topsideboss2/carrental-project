@@ -21,7 +21,7 @@ resource "aws_cloudwatch_log_group" "log_group" {
 resource "aws_ecs_task_definition" "ecs_task_definition" {
   family                   = "${var.project_name}-${var.environment}-td"
   execution_role_arn       = aws_iam_role.ecs_task_execution_role.arn
-  network_mode             = "awsvpc"
+  network_mode             = "host"
   requires_compatibilities = ["FARGATE"]
   cpu                      = 2048
   memory                   = 4096
@@ -44,6 +44,13 @@ resource "aws_ecs_task_definition" "ecs_task_definition" {
           hostPort      = 3333
         }
       ]
+
+      healthCheck = {
+        retries = 10
+        command = [ "CMD-SHELL", "curl -f http://localhost:3333 || exit 1" ]
+        timeout: 5
+        interval: 10
+      }
 
       environmentFiles = [
         {
@@ -78,6 +85,13 @@ resource "aws_ecs_task_definition" "ecs_task_definition" {
         }
       ]
 
+      healthCheck = {
+        retries = 10
+        command = [ "CMD-SHELL", "curl -f http://localhost:80 || exit 1" ]
+        timeout: 5
+        interval: 10
+      }
+
       logConfiguration = {
         logDriver = "awslogs",
         options = {
@@ -90,7 +104,7 @@ resource "aws_ecs_task_definition" "ecs_task_definition" {
     {
       name      = "${var.project_name}-${var.environment}-redis-container"
       image     = "public.ecr.aws/ubuntu/redis:latest"
-      essential = false
+      essential = true
 
       environment = [
         {
@@ -98,6 +112,13 @@ resource "aws_ecs_task_definition" "ecs_task_definition" {
           value = "${local.secrets.redis_password}"
         }
       ]
+
+      healthCheck = {
+        retries = 10
+        command = [ "CMD", "redis-cli", "-a", "${local.secrets.redis_password}" , "--raw", "incr", "ping" ]
+        timeout: 5
+        interval: 10
+      }
 
       portMappings = [
         {
