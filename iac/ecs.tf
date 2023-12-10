@@ -54,7 +54,7 @@ resource "aws_ecs_task_definition" "ecs_task_definition" {
 
       dependsOn   = [{
         containerName = "${var.project_name}-${var.environment}-redis-container"
-        condition     = "COMPLETE"
+        condition     = "START"
       }]
 
       logConfiguration = {
