@@ -45,13 +45,6 @@ resource "aws_ecs_task_definition" "ecs_task_definition" {
         }
       ]
 
-      healthCheck = {
-        retries = 10
-        command = [ "CMD-SHELL", "curl -f http://localhost:3333/api || exit 1" ]
-        timeout: 5
-        interval: 10
-      }
-
       environmentFiles = [
         {
           value = "arn:aws:s3:::${var.project_name}-${var.env_file_bucket_name}/${var.env_file_name}"
