@@ -132,17 +132,6 @@ resource "aws_security_group" "app_server_security_group" {
     ]
   }
 
-  # allow outbound traffic to the private subnet on all ports
-  egress {
-    from_port   = 0
-    to_port     = 65535
-    protocol    = "tcp"
-    cidr_blocks = [
-      var.private_data_subnet_az1_cidr,
-      var.private_data_subnet_az2_cidr
-    ]
-  }
-
   egress {
     from_port   = 0
     to_port     = 0
