@@ -121,6 +121,14 @@ resource "aws_security_group" "app_server_security_group" {
     self = true
   }
 
+  # allow inbound traffic from the same security group on port 3333
+  ingress {
+    from_port   = 3333
+    to_port     = 3333
+    protocol    = "tcp"
+    self = true
+  }
+
   # allow inbound traffic from the private subnet on port 5432
   ingress {
     from_port   = 5432
