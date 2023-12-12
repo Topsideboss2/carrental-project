@@ -12,5 +12,4 @@ else
     cd /app/dist/apps/api/ 
 fi
 
-pm2 start main.js
-pm2 logs
+pm2 start main.js --attach
