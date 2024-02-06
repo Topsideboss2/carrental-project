@@ -7,7 +7,6 @@ The main objective was to orchestrate a comprehensive and modernized
 deployment pipeline for a car rental web application, incorporating key DevOps
 and cloud engineering practices. 
 
-
 ### Services used:
 * GitHub
 * AWS S3
