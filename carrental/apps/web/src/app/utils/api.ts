@@ -6,13 +6,13 @@ interface InstanceConfig {
 }
 
 const instance: AxiosInstance = axios.create({
-  baseURL: 'http://localhost:3333/api/',
+  baseURL: 'http://127.0.0.1:3333/api/',
   timeout: 15000,
 });
 
 export default instance;
 
-export const imageUrl = 'http://localhost:3333/storage';
+export const imageUrl = 'http://127.0.0.1:3333/storage';
 
 const responseBody = <T>(response: AxiosResponse<T>): T => response.data;
 
