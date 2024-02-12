@@ -22,8 +22,8 @@ database_instance_class      = "db.t3.micro"
 publicly_accessible          = "false"
 
 # acm variables
-domain_name       = "orchidacquisitions.com"
-alternative_names = "carrental.orchidacquisitions.com"
+domain_name       = "topsideboss2.tech"
+alternative_names = "carrental.topsideboss2.tech"
 
 # s3 variables
 env_file_bucket_name = "topsideboss2-carrental-env-file-bucket"
