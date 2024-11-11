@@ -4,7 +4,7 @@
 ## Introduction
 
 The main objective was to orchestrate a comprehensive and modernized
-deployment pipeline for a car rental web application, incorporating key DevOps
+deployment pipeline for a carrental web application, incorporating key DevOps
 and cloud engineering practices. 
 
 ### Services used:
@@ -21,7 +21,9 @@ and cloud engineering practices.
 * Amazon Cloudwatch
 
 
-### [Blog series](https://topsideboss2.engineer):
+### 📄 [Documentation](_docs/Carrental%20Project%20Documentation.pdf)
+
+### [Blog series](https://topsideboss2.hashnode.dev):
 * Coming Soon
 
-### 🔗 [Live Demo](carrental.orchidacquisitions.com) 
+### 🔗 [Live Demo](carrental.orchidacquisitions.com)
